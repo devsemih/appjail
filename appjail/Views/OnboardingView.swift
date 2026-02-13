@@ -35,14 +35,22 @@ struct OnboardingView: View {
 
             Spacer()
 
-            if permissionsManager.allPermissionsGranted {
-                Text("All set!")
-                    .font(.caption)
-                    .foregroundStyle(.green)
-            } else {
-                Text("Permissions are checked automatically.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            HStack {
+                if permissionsManager.allPermissionsGranted {
+                    Text("All set!")
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                } else {
+                    Text("Permissions are checked automatically.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("Quit") {
+                    NSApplication.shared.terminate(nil)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.red)
             }
         }
         .padding()
