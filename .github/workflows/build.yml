@@ -61,6 +61,12 @@ jobs:
             CODE_SIGN_IDENTITY="Developer ID Application" \
             DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
 
+      - name: Verify signature
+        run: |
+          APP_PATH="build/Build/Products/Release/appjail.app"
+          codesign -dvv "$APP_PATH"
+          codesign --verify --deep --strict "$APP_PATH"
+
       - name: Notarize
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -69,15 +75,31 @@ jobs:
         run: |
           APP_PATH="build/Build/Products/Release/appjail.app"
 
+          # Re-sign with hardened runtime + timestamp explicitly
+          codesign --force --deep --options runtime --timestamp \
+            --sign "Developer ID Application" "$APP_PATH"
+
           # Create zip for notarization
           ditto -c -k --keepParent "$APP_PATH" appjail.zip
 
-          # Submit for notarization
-          xcrun notarytool submit appjail.zip \
+          # Submit for notarization and capture output
+          SUBMIT_OUT=$(xcrun notarytool submit appjail.zip \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_ID_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
-            --wait
+            --wait 2>&1) || true
+          echo "$SUBMIT_OUT"
+
+          # Extract submission ID and fetch log if failed
+          SUB_ID=$(echo "$SUBMIT_OUT" | grep "id:" | head -1 | awk '{print $2}')
+          if echo "$SUBMIT_OUT" | grep -q "Invalid"; then
+            echo "--- Notarization Log ---"
+            xcrun notarytool log "$SUB_ID" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_ID_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID"
+            exit 1
+          fi
 
           # Staple the ticket
           xcrun stapler staple "$APP_PATH"
