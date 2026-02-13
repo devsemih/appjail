@@ -10,6 +10,12 @@ AppJail sits in your menu bar and enforces focus by terminating blocked applicat
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![Privacy](https://img.shields.io/badge/Privacy-No_Telemetry-green)
 
+<p align="center">
+  <img src="screenshots/apps-tab.png" width="300" alt="AppJail Apps Tab — block any installed macOS application">
+  &nbsp;&nbsp;
+  <img src="screenshots/browsers-tab.png" width="300" alt="AppJail Browsers Tab — block browser tabs by URL keyword">
+</p>
+
 ## Features
 
 - **Block Apps** — Toggle any installed application to blocked. When activated, the app is immediately terminated.
