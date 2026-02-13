@@ -1,21 +1,24 @@
-# AppJail
+# AppJail — Block Distracting Apps & Browser Tabs on macOS
 
-A lightweight macOS menu bar utility that blocks distracting apps and browser tabs.
+A free, open-source macOS menu bar app that blocks distracting applications and browser tabs to help you stay focused. No background polling, no network requests, no browser extensions required.
 
 AppJail sits in your menu bar and enforces focus by terminating blocked applications and closing browser tabs that match URL keywords — all powered by native macOS APIs.
 
-![macOS](https://img.shields.io/badge/macOS-26.0%2B-black?logo=apple)
+[![Build & Release](https://github.com/devsemih/appjail/actions/workflows/build.yml/badge.svg)](https://github.com/devsemih/appjail/actions/workflows/build.yml)
+![macOS](https://img.shields.io/badge/macOS-15.0%2B-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-6-orange?logo=swift)
 ![License](https://img.shields.io/badge/License-MIT-blue)
+![Privacy](https://img.shields.io/badge/Privacy-No_Telemetry-green)
 
 ## Features
 
 - **Block Apps** — Toggle any installed application to blocked. When activated, the app is immediately terminated.
-- **Block Browser Tabs** — Add URL keywords (e.g. `youtube`, `reddit`, `twitter`). Matching tabs are closed when you switch to a browser.
-- **Menu Bar Only** — Runs entirely from the menu bar with no dock icon.
+- **Block Browser Tabs** — Add URL keywords (e.g. `youtube`, `reddit`, `twitter`). Matching tabs are closed automatically — no browser extension needed.
+- **Menu Bar Only** — Runs entirely from the menu bar with no dock icon. Minimal, distraction-free interface.
 - **Event-Driven** — Monitors app switches via `NSWorkspace` notifications. No polling, no CPU waste.
+- **Privacy-First** — No network requests, no telemetry, no tracking. Everything runs locally on your Mac.
 - **Violation Alerts** — A floating panel appears briefly when a blocked app or URL is caught.
-- **Persistent** — Your block lists survive app restarts (stored in UserDefaults).
+- **Persistent Block Lists** — Your block lists survive app restarts (stored in UserDefaults).
 
 ## Supported Browsers
 
@@ -35,13 +38,9 @@ AppJail sits in your menu bar and enforces focus by terminating blocked applicat
 
 ### Download
 
-Download the latest DMG from [Releases](https://github.com/devsemih/appjail/releases), open it, and drag **appjail** to your Applications folder.
+Download the latest `AppJail.dmg` from [Releases](https://github.com/devsemih/appjail/releases/latest), open it, and drag **AppJail** to your Applications folder.
 
-Since the app is not notarized, macOS may show a "damaged" warning. Run this after installing:
-
-```bash
-xattr -cr /Applications/appjail.app
-```
+The app is signed and notarized by Apple — just download, install, and run.
 
 ### Build from Source
 
@@ -51,7 +50,7 @@ cd appjail
 xcodebuild -project appjail.xcodeproj -scheme appjail -configuration Release
 ```
 
-Requires **Xcode 26.2+** and **macOS 26.0+**.
+Requires **Xcode 16+** and **macOS 15.0+**.
 
 ## Permissions
 
@@ -62,15 +61,19 @@ AppJail needs two permissions on first launch:
 | **Accessibility** | To monitor which app is frontmost and terminate blocked apps |
 | **Automation** | To read browser URLs and close tabs via AppleScript |
 
-The onboarding screen guides you through granting both. You can manage them later in **System Settings → Privacy & Security**.
+The onboarding screen guides you through granting both. You can manage them later in **System Settings > Privacy & Security**.
 
 ## How It Works
 
 1. AppJail observes `NSWorkspace.didActivateApplicationNotification` to detect app switches.
 2. When a blocked app comes to the foreground, it calls `terminate()` on the process.
-3. When a registered browser activates and URL keywords exist, it waits 300ms for the page to load, reads the active tab URL via AppleScript, and closes the tab if a keyword matches.
+3. When a browser activates and URL keywords exist, it reads the active tab URL via AppleScript and closes the tab if a keyword matches.
 
 No background polling. No network requests. Everything runs locally.
+
+## Why AppJail?
+
+Unlike browser extensions or network-level blockers, AppJail blocks both apps and browser tabs from a single native menu bar interface. Compared to tools like SelfControl, Cold Turkey, or Freedom — AppJail is lightweight, open source, and works across 8+ browsers without modifying network settings or requiring a subscription.
 
 ## Architecture
 
