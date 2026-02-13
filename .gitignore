@@ -1,0 +1,22 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+xcuserdata/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# CocoaPods / SPM
+Pods/
+.build/
+
+# Misc
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.dmg
