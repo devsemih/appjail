@@ -37,6 +37,12 @@ AppJail sits in your menu bar and enforces focus by terminating blocked applicat
 
 Download the latest DMG from [Releases](https://github.com/devsemih/appjail/releases), open it, and drag **appjail** to your Applications folder.
 
+Since the app is not notarized, macOS may show a "damaged" warning. Run this after installing:
+
+```bash
+xattr -cr /Applications/appjail.app
+```
+
 ### Build from Source
 
 ```bash
