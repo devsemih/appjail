@@ -27,15 +27,59 @@ jobs:
           sudo xcode-select -s "$XCODE_PATH"
           xcodebuild -version
 
+      - name: Import certificate
+        env:
+          CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASS=$(openssl rand -hex 16)
+
+          # Create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+
+          # Import certificate
+          echo "$CERTIFICATE_P12" | base64 --decode > $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 \
+            -P "$CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+
+          # Add to search list
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+
       - name: Build
         run: |
           xcodebuild -project appjail.xcodeproj \
             -scheme appjail \
             -configuration Release \
             -derivedDataPath build \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Notarize
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          APP_PATH="build/Build/Products/Release/appjail.app"
+
+          # Create zip for notarization
+          ditto -c -k --keepParent "$APP_PATH" appjail.zip
+
+          # Submit for notarization
+          xcrun notarytool submit appjail.zip \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_ID_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
+          # Staple the ticket
+          xcrun stapler staple "$APP_PATH"
 
       - name: Create DMG
         run: |
@@ -44,8 +88,6 @@ jobs:
 
           mkdir -p dmg_staging
           cp -R "$APP_PATH" dmg_staging/
-
-          # Create a symlink to /Applications for drag-install
           ln -s /Applications dmg_staging/Applications
 
           hdiutil create -volname "AppJail" \
@@ -53,11 +95,29 @@ jobs:
             -ov -format UDZO \
             "$DMG_NAME"
 
+          # Sign and notarize the DMG too
+          codesign --sign "Developer ID Application" "$DMG_NAME"
+          xcrun notarytool submit "$DMG_NAME" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_ID_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+          xcrun stapler staple "$DMG_NAME"
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
           name: AppJail-DMG
           path: AppJail.dmg
+
+      - name: Cleanup keychain
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db 2>/dev/null || true
 
   release:
     name: Create Release
