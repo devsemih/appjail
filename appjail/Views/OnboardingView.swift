@@ -54,7 +54,7 @@ struct OnboardingView: View {
             }
         }
         .padding()
-        .frame(width: 300, height: 320)
+        .frame(width: 380, height: 520)
         .onAppear { permissionsManager.startPolling() }
         .onDisappear { permissionsManager.stopPolling() }
     }

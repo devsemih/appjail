@@ -2,14 +2,15 @@ import AppKit
 import Combine
 
 class MonitoringEngine: ObservableObject {
-    @Published var isMonitoring = false {
-        didSet {
-            if isMonitoring { startObserving() }
-            else { stopObserving() }
-        }
+    @Published var manuallyEnabled = false
+    @Published var lastViolation: Violation?
+
+    var isMonitoring: Bool {
+        manuallyEnabled || timerRunning || scheduleActive
     }
 
-    @Published var lastViolation: Violation?
+    @Published private(set) var timerRunning = false
+    @Published private(set) var scheduleActive = false
 
     struct Violation: Identifiable {
         let id = UUID()
@@ -21,12 +22,44 @@ class MonitoringEngine: ObservableObject {
     private let blockList: BlockList
     nonisolated(unsafe) private var observer: NSObjectProtocol?
     private var lastCheckTime = Date.distantPast
+    private var cancellables = Set<AnyCancellable>()
+    private var wasMonitoring = false
 
     init(blockList: BlockList) {
         self.blockList = blockList
     }
 
+    func bind(focusTimer: FocusTimerManager, schedule: ScheduleManager) {
+        focusTimer.$state
+            .map { $0.status == .running }
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .assign(to: &$timerRunning)
+
+        schedule.$isScheduleActive
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .assign(to: &$scheduleActive)
+
+        Publishers.CombineLatest3($manuallyEnabled, $timerRunning, $scheduleActive)
+            .map { manual, timer, sched in manual || timer || sched }
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] shouldMonitor in
+                guard let self else { return }
+                if shouldMonitor && !self.wasMonitoring {
+                    self.startObserving()
+                    self.wasMonitoring = true
+                } else if !shouldMonitor && self.wasMonitoring {
+                    self.stopObserving()
+                    self.wasMonitoring = false
+                }
+            }
+            .store(in: &cancellables)
+    }
+
     private func startObserving() {
+        guard observer == nil else { return }
         observer = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification,
             object: nil,
@@ -62,9 +95,9 @@ class MonitoringEngine: ObservableObject {
             return
         }
 
+        let keywords = blockList.effectiveKeywords
         if let browser = BrowserRegistry.browser(for: bundleID),
-           !blockList.urlKeywords.isEmpty {
-            let keywords = blockList.urlKeywords
+           !keywords.isEmpty {
             let appName = browser.browserName
             Task.detached {
                 try? await Task.sleep(for: .milliseconds(300))

@@ -1,6 +1,6 @@
 # AppJail — Block Distracting Apps & Browser Tabs on macOS
 
-A free, open-source macOS menu bar app that blocks distracting applications and browser tabs to help you stay focused. No background polling, no network requests, no browser extensions required.
+A free, open-source macOS menu bar app that blocks distracting applications and browser tabs to help you stay focused. Focus timer, scheduled blocking, website categories, and more — no browser extensions required.
 
 AppJail sits in your menu bar and enforces focus by terminating blocked applications and closing browser tabs that match URL keywords — all powered by native macOS APIs.
 
@@ -18,13 +18,17 @@ AppJail sits in your menu bar and enforces focus by terminating blocked applicat
 
 ## Features
 
-- **Block Apps** — Toggle any installed application to blocked. When activated, the app is immediately terminated.
+- **Block Apps** — Select any installed application to block. When activated, the app is immediately terminated.
 - **Block Browser Tabs** — Add URL keywords (e.g. `youtube`, `reddit`, `twitter`). Matching tabs are closed automatically — no browser extension needed.
+- **Website Categories** — Block entire categories of sites (Social Media, Shopping, News, Entertainment, Gaming) with one tap instead of adding keywords one by one.
+- **Focus Timer** — Start timed focus sessions (25, 45, 60, or 90 minutes) that automatically enable blocking. Strict mode prevents you from stopping early.
+- **Scheduled Blocking** — Set up recurring block schedules by day of week and time range. Blocking activates and deactivates automatically.
+- **Redesigned Dashboard** — A unified card-based interface replaces the old tab layout. Quick-access cards show blocked app, website, and category counts at a glance.
 - **Menu Bar Only** — Runs entirely from the menu bar with no dock icon. Minimal, distraction-free interface.
 - **Event-Driven** — Monitors app switches via `NSWorkspace` notifications. No polling, no CPU waste.
 - **Privacy-First** — No network requests, no telemetry, no tracking. Everything runs locally on your Mac.
 - **Violation Alerts** — A floating panel appears briefly when a blocked app or URL is caught.
-- **Persistent Block Lists** — Your block lists survive app restarts (stored in UserDefaults).
+- **Persistent Configuration** — All block lists, schedules, and settings survive app restarts.
 
 ## Supported Browsers
 
@@ -84,10 +88,21 @@ Unlike browser extensions or network-level blockers, AppJail blocks both apps an
 ## Architecture
 
 ```
-Models/         Data models and persistence (BlockList, AppInfo)
-Services/       Core logic (MonitoringEngine, AppScanner, BrowserRegistry, AppleScript)
-Views/          SwiftUI views (Dashboard, Apps tab, Browsers tab, Onboarding)
+Models/         Data models and persistence (BlockList, BlockSchedule, FocusTimerState, WebsiteCategory)
+Services/       Core logic (MonitoringEngine, FocusTimerManager, ScheduleManager, AppScanner, BrowserRegistry)
+Views/
+  Components/   Reusable UI components (StatusCard, QuickConfigCard, TimerRingView, etc.)
+  Sheets/       Modal sheets (SelectApps, SelectWebsites, WebsiteCategories, FocusTimer, Schedule)
 ```
+
+## What's New in v1.1.0
+
+- Focus Timer with strict mode and preset durations
+- Scheduled blocking with weekday and time range support
+- Website category blocking (Social Media, Shopping, News, Entertainment, Gaming)
+- Redesigned dashboard with card-based layout and glass effect styling
+- Three monitoring triggers: manual, timer-based, and schedule-based
+- New reusable components (TimerRingView, StatusCard, QuickConfigCard, LetterAvatar)
 
 ## License
 
