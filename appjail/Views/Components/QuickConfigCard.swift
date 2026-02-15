@@ -21,6 +21,7 @@ struct QuickConfigCard: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
+            .contentShape(Rectangle())
             .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)

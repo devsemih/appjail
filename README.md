@@ -11,9 +11,16 @@ AppJail sits in your menu bar and enforces focus by terminating blocked applicat
 ![Privacy](https://img.shields.io/badge/Privacy-No_Telemetry-green)
 
 <p align="center">
-  <img src="screenshots/apps-tab.png" width="300" alt="AppJail Apps Tab — block any installed macOS application">
-  &nbsp;&nbsp;
-  <img src="screenshots/browsers-tab.png" width="300" alt="AppJail Browsers Tab — block browser tabs by URL keyword">
+  <img src="screenshots/apps-tab.png" width="280" alt="AppJail Dashboard — card-based interface with quick access to apps, websites, and categories">
+  &nbsp;
+  <img src="screenshots/browsers-tab.png" width="280" alt="AppJail Websites — block browser tabs by URL keyword">
+  &nbsp;
+  <img src="screenshots/categories.png" width="280" alt="AppJail Categories — block entire categories like Social Media, Shopping, News">
+</p>
+<p align="center">
+  <img src="screenshots/focus-timer.png" width="280" alt="AppJail Focus Timer — timed focus sessions with strict mode">
+  &nbsp;
+  <img src="screenshots/schedules.png" width="280" alt="AppJail Schedules — recurring block schedules by day and time">
 </p>
 
 ## Features

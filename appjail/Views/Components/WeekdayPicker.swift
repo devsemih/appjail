@@ -22,7 +22,8 @@ struct WeekdayPicker: View {
                             .font(.caption2)
                             .fontWeight(.medium)
                             .foregroundStyle(selectedDays.contains(day.value) ? .white : .primary)
-                            .frame(width: 26, height: 26)
+                            .frame(width: 30, height: 30)
+                            .contentShape(Rectangle())
                             .glassEffect(
                                 selectedDays.contains(day.value)
                                     ? .regular.tint(.accentColor)

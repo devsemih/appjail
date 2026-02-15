@@ -129,6 +129,7 @@ struct DashboardView: View {
                     .font(.caption)
             }
             .padding(12)
+            .contentShape(Rectangle())
             .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
@@ -172,6 +173,7 @@ struct DashboardView: View {
                     .font(.caption)
             }
             .padding(12)
+            .contentShape(Rectangle())
             .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
