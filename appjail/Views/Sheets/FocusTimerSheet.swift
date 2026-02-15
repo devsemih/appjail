@@ -8,107 +8,106 @@ struct FocusTimerSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Button(action: onDismiss) {
-                    Image(systemName: "chevron.left")
-                        .font(.body)
-                }
-                .buttonStyle(.plain)
-                Text("Focus Timer")
-                    .font(.headline)
-                Spacer()
-            }
-            .padding()
+            SheetHeader(title: "Focus Timer")
 
-            Divider()
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Timer ring in glass section
+                    VStack(spacing: 16) {
+                        TimerRingView(
+                            progress: focusTimer.isIdle ? 0 : focusTimer.progress,
+                            label: focusTimer.isIdle
+                                ? "\(focusTimer.state.durationSeconds / 60)m"
+                                : focusTimer.formattedRemaining,
+                            size: 140
+                        )
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
 
-            VStack(spacing: 20) {
-                Spacer()
+                    // Presets in glass section (only when idle)
+                    if focusTimer.isIdle {
+                        HStack(spacing: 8) {
+                            ForEach(presets, id: \.self) { minutes in
+                                Button("\(minutes)m") {
+                                    focusTimer.setDuration(minutes: minutes)
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                                .tint(focusTimer.state.durationSeconds == minutes * 60 ? .accentColor : .gray)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+                    }
 
-                TimerRingView(
-                    progress: focusTimer.isIdle ? 0 : focusTimer.progress,
-                    label: focusTimer.isIdle
-                        ? "\(focusTimer.state.durationSeconds / 60)m"
-                        : focusTimer.formattedRemaining,
-                    size: 140
-                )
-
-                if focusTimer.isIdle {
-                    HStack(spacing: 8) {
-                        ForEach(presets, id: \.self) { minutes in
-                            Button("\(minutes)m") {
-                                focusTimer.setDuration(minutes: minutes)
+                    // Controls
+                    HStack(spacing: 12) {
+                        if focusTimer.isIdle {
+                            Button("Start") {
+                                focusTimer.start()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(focusTimer.state.durationSeconds == 0)
+                        } else if focusTimer.isRunning {
+                            Button("Pause") {
+                                focusTimer.pause()
                             }
                             .buttonStyle(.bordered)
-                            .controlSize(.small)
-                            .tint(focusTimer.state.durationSeconds == minutes * 60 ? .accentColor : .gray)
-                        }
-                    }
-                }
 
-                HStack(spacing: 12) {
-                    if focusTimer.isIdle {
-                        Button("Start") {
-                            focusTimer.start()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(focusTimer.state.durationSeconds == 0)
-                    } else if focusTimer.isRunning {
-                        Button("Pause") {
-                            focusTimer.pause()
-                        }
-                        .buttonStyle(.bordered)
+                            if !focusTimer.state.strictMode {
+                                Button("Stop") {
+                                    focusTimer.stop()
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(.red)
+                            }
+                        } else if focusTimer.isPaused {
+                            Button("Resume") {
+                                focusTimer.resume()
+                            }
+                            .buttonStyle(.borderedProminent)
 
-                        if !focusTimer.state.strictMode {
                             Button("Stop") {
                                 focusTimer.stop()
                             }
                             .buttonStyle(.bordered)
                             .tint(.red)
                         }
-                    } else if focusTimer.isPaused {
-                        Button("Resume") {
-                            focusTimer.resume()
-                        }
-                        .buttonStyle(.borderedProminent)
+                    }
 
-                        Button("Stop") {
-                            focusTimer.stop()
+                    // Strict mode toggle in glass section (only when idle)
+                    if focusTimer.isIdle {
+                        VStack(spacing: 6) {
+                            Toggle("Strict Mode", isOn: Binding(
+                                get: { focusTimer.state.strictMode },
+                                set: { newValue in
+                                    focusTimer.state.strictMode = newValue
+                                }
+                            ))
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+
+                            Text("Strict mode prevents stopping the timer early")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .buttonStyle(.bordered)
-                        .tint(.red)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
                     }
                 }
-
-                if focusTimer.isIdle {
-                    Toggle("Strict Mode", isOn: Binding(
-                        get: { focusTimer.state.strictMode },
-                        set: { newValue in
-                            focusTimer.state.strictMode = newValue
-                        }
-                    ))
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-                    .padding(.horizontal, 40)
-
-                    Text("Strict mode prevents stopping the timer early")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
-
-                Spacer()
+                .padding(.horizontal)
+                .padding(.vertical, 8)
             }
-            .padding()
 
-            Divider()
-
-            HStack {
-                Spacer()
-                Button("Done", action: onDismiss)
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
-            }
-            .padding()
+            SheetFooter(
+                trailingTitle: "Done",
+                trailingAction: onDismiss
+            )
         }
     }
 }

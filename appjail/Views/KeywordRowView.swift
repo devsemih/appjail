@@ -12,6 +12,8 @@ struct KeywordRowView: View {
             Button(action: onDelete) {
                 Image(systemName: "minus.circle.fill")
                     .foregroundStyle(.red)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }

@@ -7,88 +7,85 @@ struct WebsiteCategoriesSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Button(action: onDismiss) {
-                    Image(systemName: "chevron.left")
-                        .font(.body)
-                }
-                .buttonStyle(.plain)
-                Text("Website Categories")
-                    .font(.headline)
-                Spacer()
-            }
-            .padding()
+            SheetHeader(title: "Categories")
 
-            Divider()
+            ScrollView {
+                VStack(spacing: 12) {
+                    // All categories in one glass grouped section
+                    VStack(spacing: 0) {
+                        ForEach(Array(WebsiteCategory.predefined.enumerated()), id: \.element.id) { index, category in
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 10) {
+                                    Image(systemName: category.systemImage)
+                                        .font(.title3)
+                                        .foregroundStyle(.tint)
+                                        .frame(width: 28)
 
-            List {
-                ForEach(WebsiteCategory.predefined) { category in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 10) {
-                            Image(systemName: category.systemImage)
-                                .font(.title3)
-                                .foregroundStyle(.tint)
-                                .frame(width: 28)
-
-                            VStack(alignment: .leading) {
-                                Text(category.name)
-                                Text("\(category.keywords.count) websites")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Spacer()
-
-                            Button {
-                                withAnimation {
-                                    if expandedCategory == category.id {
-                                        expandedCategory = nil
-                                    } else {
-                                        expandedCategory = category.id
+                                    VStack(alignment: .leading) {
+                                        Text(category.name)
+                                        Text("\(category.keywords.count) websites")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
                                     }
-                                }
-                            } label: {
-                                Image(systemName: expandedCategory == category.id ? "chevron.up" : "chevron.down")
-                                    .foregroundStyle(.secondary)
-                                    .font(.caption)
-                            }
-                            .buttonStyle(.plain)
 
-                            Toggle("", isOn: Binding(
-                                get: { blockList.enabledCategoryIDs.contains(category.id) },
-                                set: { _ in blockList.toggleCategory(category.id) }
-                            ))
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.small)
-                        }
+                                    Spacer()
 
-                        if expandedCategory == category.id {
-                            FlowLayout(spacing: 4) {
-                                ForEach(category.keywords, id: \.self) { keyword in
-                                    Text(keyword)
-                                        .font(.caption2)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 3)
-                                        .background(Color.gray.opacity(0.15), in: Capsule())
+                                    Button {
+                                        withAnimation {
+                                            if expandedCategory == category.id {
+                                                expandedCategory = nil
+                                            } else {
+                                                expandedCategory = category.id
+                                            }
+                                        }
+                                    } label: {
+                                        Image(systemName: expandedCategory == category.id ? "chevron.up" : "chevron.down")
+                                            .foregroundStyle(.secondary)
+                                            .font(.caption)
+                                            .frame(width: 28, height: 28)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+
+                                    Toggle("", isOn: Binding(
+                                        get: { blockList.enabledCategoryIDs.contains(category.id) },
+                                        set: { _ in blockList.toggleCategory(category.id) }
+                                    ))
+                                    .toggleStyle(.switch)
+                                    .labelsHidden()
+                                    .controlSize(.small)
+                                }
+
+                                if expandedCategory == category.id {
+                                    FlowLayout(spacing: 4) {
+                                        ForEach(category.keywords, id: \.self) { keyword in
+                                            Text(keyword)
+                                                .font(.caption2)
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 3)
+                                                .background(Color.gray.opacity(0.15), in: Capsule())
+                                        }
+                                    }
+                                    .padding(.leading, 38)
                                 }
                             }
-                            .padding(.leading, 38)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            if index < WebsiteCategory.predefined.count - 1 {
+                                Divider().padding(.leading, 12)
+                            }
                         }
                     }
-                    .padding(.vertical, 4)
+                    .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
                 }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
             }
 
-            Divider()
-
-            HStack {
-                Spacer()
-                Button("Done", action: onDismiss)
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
-            }
-            .padding()
+            SheetFooter(
+                trailingTitle: "Done",
+                trailingAction: onDismiss
+            )
         }
     }
 }

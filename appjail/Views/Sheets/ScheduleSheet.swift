@@ -11,28 +11,25 @@ struct ScheduleSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Button(action: onDismiss) {
-                    Image(systemName: "chevron.left")
-                        .font(.body)
-                }
-                .buttonStyle(.plain)
-                Text("Schedules")
-                    .font(.headline)
-                Spacer()
-                Button {
-                    showingAddForm.toggle()
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title3)
-                }
-                .buttonStyle(.plain)
+            if showingAddForm {
+                addScheduleView
+            } else {
+                mainView
             }
-            .padding()
+        }
+    }
 
-            Divider()
+    // MARK: - Main View
 
-            if blockList.schedules.isEmpty && !showingAddForm {
+    private var mainView: some View {
+        VStack(spacing: 0) {
+            SheetHeader(
+                title: "Schedules",
+                trailingIcon: "plus.circle.fill",
+                trailingAction: { showingAddForm = true }
+            )
+
+            if blockList.schedules.isEmpty {
                 Spacer()
                 VStack(spacing: 8) {
                     Image(systemName: "calendar.badge.clock")
@@ -43,67 +40,95 @@ struct ScheduleSheet: View {
                 }
                 Spacer()
             } else {
-                List {
-                    if showingAddForm {
-                        addFormSection
+                ScrollView {
+                    VStack(spacing: 12) {
+                        // Schedules in glass grouped section
+                        VStack(spacing: 0) {
+                            ForEach(Array(blockList.schedules.enumerated()), id: \.element.id) { index, schedule in
+                                scheduleRow(schedule)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 10)
+                                if index < blockList.schedules.count - 1 {
+                                    Divider().padding(.leading, 12)
+                                }
+                            }
+                        }
+                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
                     }
-
-                    ForEach(blockList.schedules) { schedule in
-                        scheduleRow(schedule)
-                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
                 }
             }
 
-            Divider()
-
-            HStack {
-                Spacer()
-                Button("Done", action: onDismiss)
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
-            }
-            .padding()
+            SheetFooter(
+                trailingTitle: "Done",
+                trailingAction: onDismiss
+            )
         }
     }
 
-    private var addFormSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("New Schedule")
-                .font(.subheadline)
-                .fontWeight(.medium)
+    // MARK: - Add Schedule View
 
-            TextField("Schedule name", text: $editName)
-                .textFieldStyle(.roundedBorder)
+    private var addScheduleView: some View {
+        VStack(spacing: 0) {
+            SheetHeader(title: "New Schedule", backAction: {
+                showingAddForm = false
+                resetForm()
+            })
 
-            HStack {
-                DatePicker("Start", selection: $editStartTime, displayedComponents: .hourAndMinute)
-                    .labelsHidden()
-                Text("to")
-                    .foregroundStyle(.secondary)
-                DatePicker("End", selection: $editEndTime, displayedComponents: .hourAndMinute)
-                    .labelsHidden()
+            ScrollView {
+                VStack(spacing: 12) {
+                    // Name field in glass section
+                    TextField("Schedule name", text: $editName)
+                        .textFieldStyle(.roundedBorder)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+
+                    // Start/end time pickers grouped in glass section
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("Start")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            DatePicker("Start", selection: $editStartTime, displayedComponents: .hourAndMinute)
+                                .labelsHidden()
+                        }
+                        Divider()
+                        HStack {
+                            Text("End")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            DatePicker("End", selection: $editEndTime, displayedComponents: .hourAndMinute)
+                                .labelsHidden()
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+
+                    // Weekday picker
+                    WeekdayPicker(selectedDays: $editWeekdays)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
             }
 
-            WeekdayPicker(selectedDays: $editWeekdays)
-
-            HStack {
-                Button("Cancel") {
+            SheetFooter(
+                leadingTitle: "Cancel",
+                leadingAction: {
                     showingAddForm = false
                     resetForm()
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-
-                Button("Add") {
+                },
+                trailingTitle: "Save",
+                trailingAction: {
                     addSchedule()
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
-                .disabled(editName.trimmingCharacters(in: .whitespaces).isEmpty || editWeekdays.isEmpty)
-            }
+            )
         }
-        .padding(.vertical, 4)
     }
+
+    // MARK: - Schedule Row
 
     private func scheduleRow(_ schedule: BlockSchedule) -> some View {
         HStack(spacing: 10) {
@@ -146,11 +171,14 @@ struct ScheduleSheet: View {
                 Image(systemName: "trash")
                     .foregroundStyle(.red)
                     .font(.caption)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
-        .padding(.vertical, 4)
     }
+
+    // MARK: - Helpers
 
     private func addSchedule() {
         let calendar = Calendar.current

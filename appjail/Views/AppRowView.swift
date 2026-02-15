@@ -24,11 +24,12 @@ struct AppRowView: View {
                 Image(systemName: isBlocked ? "minus.circle.fill" : "plus.circle.fill")
                     .foregroundStyle(isBlocked ? .red : .green)
                     .font(.title3)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
         .padding(.vertical, 4)
         .padding(.horizontal, 4)
-        .background(Color.gray.opacity(0.05), in: RoundedRectangle(cornerRadius: 6))
     }
 }

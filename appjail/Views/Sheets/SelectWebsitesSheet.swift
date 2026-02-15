@@ -7,94 +7,86 @@ struct SelectWebsitesSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
-            Divider()
+            SheetHeader(
+                title: "Websites",
+                trailingText: blockList.urlKeywords.isEmpty ? nil : "\(blockList.urlKeywords.count) keywords"
+            )
 
-            VStack(spacing: 8) {
-                HStack {
-                    TextField("Type any website to add...", text: $newKeyword)
-                        .textFieldStyle(.roundedBorder)
-                        .onSubmit { addKeyword() }
-                    Button(action: addKeyword) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title3)
+            ScrollView {
+                VStack(spacing: 12) {
+                    // Input field in glass section
+                    HStack {
+                        TextField("Type any website to add...", text: $newKeyword)
+                            .textFieldStyle(.roundedBorder)
+                            .onSubmit { addKeyword() }
+                        Button(action: addKeyword) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title3)
+                                .frame(width: 32, height: 32)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(newKeyword.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
-                    .buttonStyle(.plain)
-                    .disabled(newKeyword.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+
+                    if blockList.urlKeywords.isEmpty {
+                        VStack(spacing: 8) {
+                            Text("No websites blocked yet")
+                                .foregroundStyle(.tertiary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                    } else {
+                        // Keywords in glass grouped section
+                        VStack(spacing: 0) {
+                            ForEach(Array(blockList.urlKeywords.enumerated()), id: \.element) { index, keyword in
+                                HStack(spacing: 10) {
+                                    LetterAvatar(text: keyword, size: 28)
+                                    Text(keyword)
+                                        .lineLimit(1)
+                                    Spacer()
+                                    Button {
+                                        blockList.removeKeyword(keyword)
+                                    } label: {
+                                        Image(systemName: "minus.circle.fill")
+                                            .foregroundStyle(.red)
+                                            .font(.title3)
+                                            .frame(width: 32, height: 32)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 10)
+                                if index < blockList.urlKeywords.count - 1 {
+                                    Divider().padding(.leading, 12)
+                                }
+                            }
+                        }
+                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
+                    }
                 }
                 .padding(.horizontal)
-                .padding(.top, 8)
+                .padding(.vertical, 8)
             }
 
-            if blockList.urlKeywords.isEmpty {
-                Spacer()
-                Text("No websites blocked yet")
-                    .foregroundStyle(.tertiary)
-                Spacer()
-            } else {
-                List {
-                    ForEach(blockList.urlKeywords, id: \.self) { keyword in
-                        HStack(spacing: 10) {
-                            LetterAvatar(text: keyword, size: 28)
-                            VStack(alignment: .leading) {
-                                Text(keyword)
-                                    .lineLimit(1)
-                            }
-                            Spacer()
-                            Button {
-                                blockList.removeKeyword(keyword)
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .foregroundStyle(.red)
-                                    .font(.title3)
-                            }
-                            .buttonStyle(.plain)
-                        }
+            SheetFooter(
+                leadingTitle: "Clear All",
+                leadingAction: {
+                    let keywords = blockList.urlKeywords
+                    for keyword in keywords {
+                        blockList.removeKeyword(keyword)
                     }
-                }
-            }
-
-            Divider()
-            footer
+                },
+                leadingDisabled: blockList.urlKeywords.isEmpty,
+                leadingDestructive: true,
+                trailingTitle: "Done",
+                trailingAction: onDismiss
+            )
         }
-    }
-
-    private var header: some View {
-        HStack {
-            Button(action: onDismiss) {
-                Image(systemName: "chevron.left")
-                    .font(.body)
-            }
-            .buttonStyle(.plain)
-            Text("Select Websites")
-                .font(.headline)
-            Spacer()
-            Text("\(blockList.urlKeywords.count) keywords")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
-    }
-
-    private var footer: some View {
-        HStack {
-            Button("Clear All") {
-                let keywords = blockList.urlKeywords
-                for keyword in keywords {
-                    blockList.removeKeyword(keyword)
-                }
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.red)
-            .disabled(blockList.urlKeywords.isEmpty)
-
-            Spacer()
-
-            Button("Done", action: onDismiss)
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
-        }
-        .padding()
     }
 
     private func addKeyword() {
